@@ -20,12 +20,33 @@ async function run(){
     try{
         await client.connect();
         const productCollection=client.db('emaJohn').collection('product');
+
+        //TO GET THE ITEMS 
         app.get('/product', async(req, res)=>{
-            const query ={} // as WE  want all
+            console.log('query',req.query);
+            const page= parseInt(req.query.page);
+            const size=parseInt(req.query.size);
+            const query ={}; // as WE  want all
             const cursor=productCollection.find(query);
-            const products=  await cursor.limit(13).toArray()
+            let products;
+            if(page || size){
+                products=  await cursor.skip(page*size).limit(size).toArray();
+
+            }
+            else{
+                products=  await cursor.toArray();
+
+            }
+            
             res.send (products);
-        })
+        });
+     // TO COUNT THE ITEMS
+     app.get('/productCount',  async(req,res)=>{
+         const count=  await productCollection.estimatedDocumentCount();
+         res.send ({count}); // SEND AS A OBJECT whose property is ""
+        });
+    
+
     }
 finally{}
 }
